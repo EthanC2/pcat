@@ -13,4 +13,10 @@ pcat's settings are located at `$HOME/.pcat/settings.ron`
 # Todo
 - Create an example `settings.ron` file
 - Creating a working ron settings
-- Use CLAP multicall to create a frontend for the toolchain
+
+# Creating a Program from a Template with `new`
+
+# Compiling a Program with `compile`
+`comp` (short for `compile), compiles a program given the settings
+
+# Testing a Program with `test`

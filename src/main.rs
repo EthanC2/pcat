@@ -7,20 +7,20 @@ use clap::{Command, Arg, ArgAction, ArgMatches};
 use std::fs;
 use std::env;
 use std::path::{Path, PathBuf};
-use std::ffi::OsStr;
 
 static SETTINGS: Storage<Settings> = Storage::new();
 
 fn initialize_settings() {
     let home_directory = env::var("HOME").expect("could not get $HOME environment variable");
-    let local_settings = Path::new(&home_directory).join(".pcat/settings.ron");
+    let settings_file = Path::new(&home_directory).join(".pcat/settings.ron");
 
-    if !local_settings.exists() {
+    if !settings_file.exists() {
         eprintln!("Fatal: settings file does not exist. Have you installed properly with install.sh/.ps1?");
         std::process::exit(20);
     }
 
-    SETTINGS.set(Settings::from_ron(&local_settings));
+    let settings = Settings::from_ron(&settings_file).unwrap();
+    SETTINGS.set(settings);
 }
 
 fn parse_cmd_args() -> ArgMatches {
@@ -30,19 +30,10 @@ fn parse_cmd_args() -> ArgMatches {
                 .about("Programming Competition Automation Toolchain (P.C.A.T)")
                 .subcommand_required(true)
                 .subcommand(
-                    //pcat new <programming_language> <filename>
+                    //pcat new <filename>
                     Command::new("new")
                         .aliases(&["n", "touch"])
                         .about("Creates a new <LANGUAGE> file with name <FILENAME>")
-                        .arg(
-                            Arg::new("language")
-                            .required(true)
-                            .takes_value(true)
-                            .value_name("LANGUAGE")
-                            .action(ArgAction::Set)
-                            .help("the language of the file to create")
-                            .index(1)
-                        )
                         .arg(
                             Arg::new("filename")
                             .required(true)
@@ -50,11 +41,12 @@ fn parse_cmd_args() -> ArgMatches {
                             .value_name("FILE")
                             .action(ArgAction::Set)
                             .help("the name of the file to compile")
-                            .index(2)
+                            .index(1)
                         )
         
                     /*
-                    
+                        --open (-o): automatically open the file in $EDITOR
+                        --line-number (-l): automatically skip to <line_number>
                     */
                 )
                 .subcommand(
@@ -91,19 +83,15 @@ fn parse_cmd_args() -> ArgMatches {
 }
 
 fn create_program(args: &ArgMatches) {
-    println!("creating the program");
-    let filename = args.get_one::<String>("filename").expect("filename is required");
-    let file_extension = args.get_one::<String>("language").expect("language is required");
-    
-    let templates_folder = &SETTINGS.get().templates;
-    let mut template_file = PathBuf::from("template");
-    template_file.set_extension(file_extension);
+    let destination = Path::new(args.get_one::<String>("filename").expect("filename is required"));
+    let language = destination.extension().unwrap();
 
-    let mut template = PathBuf::new();
-    template.push(&SETTINGS.get().templates.as_path());
-    template.push(template_file);
+    let mut template = PathBuf::new();  //todo: fix this hot mess
+    template.push(&SETTINGS.get().template_settings.templates.as_path());
+    template.push("template");
+    template.set_extension(&language);
 
-    fs::copy(template, filename).unwrap();
+    fs::copy(template, destination).unwrap();
 }
 
 fn compile_program(args: &ArgMatches) {
