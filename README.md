@@ -11,8 +11,17 @@
 pcat's settings are located at `$HOME/.pcat/settings.ron`
 
 # Todo
-- Create an example `settings.ron` file
-- Creating a working ron settings
+- Work on the PEST parser for unit tests
+- Add a setting to auto-generate headers for tests (--number 3, -n3?)
+
+# Platform Support
+This program should work on any Unix-based OS, but can be ported to any OS by creating the
+necessary environment variables ($HOME, $EDITOR, etc).
+
+# Installation and Setup
+Installation is as easy as downloading the install.sh file (Linux, MacOS) or install.ps1
+(Windows) and running the script. From there, feel free to edit the $HOME/.pcat/settings.ron
+file to your liking.
 
 # Creating a Program from a Template with `new`
 

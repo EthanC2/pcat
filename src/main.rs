@@ -1,17 +1,21 @@
 mod settings;
 use settings::Settings;
 
+mod tools;
+use tools::source_generation;
+use tools::compiler;
+use tools::test;
+
 use state::Storage;
 use clap::{Command, Arg, ArgAction, ArgMatches};
 
-use std::fs;
+use std::path::Path;
 use std::env;
-use std::path::{Path, PathBuf};
 
 static SETTINGS: Storage<Settings> = Storage::new();
 
 fn initialize_settings() {
-    let home_directory = env::var("HOME").expect("could not get $HOME environment variable");
+    let home_directory = env::var("HOME").expect("could not get $HOME environment variable. If you are using Windows, reinstall and run this program in the Windows Subsystem for Linux");
     let settings_file = Path::new(&home_directory).join(".pcat/settings.ron");
 
     if !settings_file.exists() {
@@ -43,11 +47,13 @@ fn parse_cmd_args() -> ArgMatches {
                             .help("the name of the file to compile")
                             .index(1)
                         )
-        
-                    /*
-                        --open (-o): automatically open the file in $EDITOR
-                        --line-number (-l): automatically skip to <line_number>
-                    */
+                        .arg(
+                            Arg::new("open")
+                            .long("open")
+                            .short('o')
+                            .action(ArgAction::SetTrue)
+                            .help("Automatically open the created file with $EDITOR")
+                        )
                 )
                 .subcommand(
                     //pcat compile <filename>
@@ -60,8 +66,15 @@ fn parse_cmd_args() -> ArgMatches {
                         .takes_value(true)
                         .value_name("FILE")
                         .action(ArgAction::Set)
-                        .help("the name of the file to compile")
+                        .help("The name of the file to compile")
                         .index(1)
+                    )
+                    .arg(
+                        Arg::new("debug")
+                        .long("debug")
+                        .short('d')
+                        .action(ArgAction::SetTrue)
+                        .help("Complies the program with \'debug_args\' instead of \'default_args\'")
                     )
                     /*
                         debug: compile with debug flags
@@ -82,34 +95,14 @@ fn parse_cmd_args() -> ArgMatches {
                 .get_matches()
 }
 
-fn create_program(args: &ArgMatches) {
-    let destination = Path::new(args.get_one::<String>("filename").expect("filename is required"));
-    let language = destination.extension().unwrap();
-
-    let mut template = PathBuf::new();  //todo: fix this hot mess
-    template.push(&SETTINGS.get().template_settings.templates.as_path());
-    template.push("template");
-    template.set_extension(&language);
-
-    fs::copy(template, destination).unwrap();
-}
-
-fn compile_program(args: &ArgMatches) {
-    println!("compiling!");
-}
-
-fn test_program() {
-    println!("testing program!");
-}
-
 fn main() {
     initialize_settings();
     let args = parse_cmd_args();
 
     match args.subcommand() {
-        Some(("new", suboptions)) => create_program(&suboptions),
-        Some(("compile", suboptions)) => compile_program(&suboptions),
-        Some(("test", _)) => test_program(),
+        Some(("new", suboptions)) => source_generation::create_program(&suboptions),
+        Some(("compile", suboptions)) => compiler::compile_program(&suboptions),
+        Some(("test", _)) => test::test_program(),
         _ => std::unreachable!(),
     }
 }
