@@ -12,3 +12,5 @@ pcat's settings are located at `$HOME/.pcat/settings.ron`
 
 # Todo
 - Create an example `settings.ron` file
+- Creating a working ron settings
+- Use CLAP multicall to create a frontend for the toolchain
