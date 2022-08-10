@@ -1,0 +1,19 @@
+Settings(
+    creation_settings: FileCreationSettings(
+        /*
+            languages: HashSet<String>
+        */
+    ),
+
+    compilation_settings: CompilationSettings(
+        /*
+            executable_name
+        */
+    ),
+
+    test_settings: TestSettings(
+        /*
+        
+        */
+    )
+)
